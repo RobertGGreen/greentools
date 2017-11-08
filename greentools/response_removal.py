@@ -6,6 +6,45 @@
 Module containing functions for use in instrument response removal.
 """
 
+def deconvolve_with_pz(st,response_prefilt,pz) :
+    '''
+    Deconvolves stream using the supplied polezero dictionary
+    -Demeans and detrends each trace of stream
+    -Applies 1% taper to prevent ringing at the end of traces
+    -Prefilters data prior to deconvolution to prevent amplication of noise
+
+    response_prefilt=(f1,f2,f3,f4) - tuple, where f1<f2<f3<f4
+    Frequencies should be conditioned to your intended time series
+    Both f3 and f4 should be less than the Nyquist. To avoid ringing in 
+    the output time series, a suggested rule-of-thumb is:
+    f1 = f2/2 and f4 >= 2*f3
+
+    Taper fraction 0.01 means you lose 7 mins both at start and end of a 24 hour file
+
+    Obspy pole-zero dictionaries
+    (1) "poles" should be a list of tuples, e.g. [(x+yj),(r+sj)]
+    (2) "zeros" should be a list of complexes, e.g. [0j,0j]
+    (3) "sensitivity" is the total sensitivity and is used if remove_sensitivity=true 
+        "digitizer gain" and "seismometer gain" are floats but are passive and there for reference. 
+         Multiplied together they give the "sensitivity"
+    (4) "gain" is actually the A0 normalisation factor, the factor that defines the amplitude of pole-zero
+         curve at 1 Hz.
+
+    N.B. In most case using the poles and zeros is sufficient for instrument response
+    removal, unless you are working close to the NYQUIST frequency, in which case the
+    effects of the FIR filters can become more important. The FIR filter can cause:
+    -Slight rippling (in amplitude) near Nyquist frequency
+    -Acausal ringing for sharp onsets (ringing is at frequencies near Nyquist)
+
+    '''
+    for tr in st :
+        tr.detrend('demean')
+        tr.detrend('linear')
+    st.simulate(paz_remove=pz,remove_sensitivity=True,
+                    pre_filt=response_prefilt,paz_simulate=None,
+                    taper=True, taper_fraction=0.01)
+    return st
+
 
 def get_pazdictfrominventory(inventory,tr):
     ''' Reads an obspy station inventory object and
@@ -20,7 +59,6 @@ def get_pazdictfrominventory(inventory,tr):
     (4) "gain" is actually the A0 normalisation factor, the factor that defines the amplitude of pole-zero
          curve at 1 Hz.
      '''
-
     inv=inventory.get_response(tr.id,tr.stats.starttime)
     polezerostage=inv.get_paz()
     totalsensitivity=inv.instrument_sensitivity
@@ -30,6 +68,7 @@ def get_pazdictfrominventory(inventory,tr):
     pzdict['gain']=polezerostage.normalization_factor
     pzdict['sensitivity']=totalsensitivity.value
     return pzdict
+
 
 def read_sacpzfile(file):
     ''' Reads a sac format poles-zero file
