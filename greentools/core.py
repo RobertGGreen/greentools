@@ -22,7 +22,7 @@ def create_path(directory):
         try :
             os.makedirs(directory)
         except OSError as e :
-            if e[0]=17 :
+            if e[0]==17 :
                 pass
             else :
                 raise OSError(e)
