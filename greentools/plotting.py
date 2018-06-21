@@ -22,10 +22,12 @@ def load_multi_segment_txtfile(fname) :
     # Separating the segments, convert to np.array
     for i in range(0,len(separator_ind)-1) :
         seg=contourlines[separator_ind[i]+1:separator_ind[i+1]]
-        seg_ar=np.array([l.strip().split('\t') for l in seg]).astype(np.float)
+        #seg_ar=np.array([l.strip().split('\t') for l in seg]).astype(np.float)
+        seg_ar=np.array([l.strip().split() for l in seg]).astype(np.float)
         dict[i]=seg_ar
     # Do the final segment
     seg=contourlines[separator_ind[-1]+1:]
-    seg_ar=np.array([l.strip().split('\t') for l in seg]).astype(np.float)
+    #seg_ar=np.array([l.strip().split('\t') for l in seg]).astype(np.float)
+    seg_ar=np.array([l.strip().split() for l in seg]).astype(np.float)
     dict[i+1]=seg_ar
     return dict
