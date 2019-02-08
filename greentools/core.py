@@ -4,6 +4,7 @@ Module containing core convenience functions for working with seismic data in ob
 
 import os,sys
 import numpy as np
+import cPickle as pickle
 
 def create_path(directory):
     """Create a given path with all parent directories
@@ -29,6 +30,26 @@ def create_path(directory):
     else:
         assert os.path.isdir(directory), "%s exists but is not a directory" % subpath
     return 0
+
+def save_to_pickle(fname,obj):
+    """
+    Save python object as a pickle
+    file using cPickle.
+    """
+    pickle_out = open(fname,"wb")
+    pickle.dump(obj, pickle_out)
+    pickle_out.close()
+    return
+
+def load_from_pickle(fname):
+    """
+    Load a python object from a pickle
+    file using cPickle
+    """
+    pickle_in = open(fname,"rb")
+    obj = pickle.load(pickle_in)
+    return obj
+
 
 def write_st_to_mseed(st,fpath) :
     '''
